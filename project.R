@@ -17,7 +17,7 @@ p = dim(data)[2] - 1
 X = as.matrix(data[,-1])
 y = data$target
 
-## For final project run - set iterations to 50
+## For final run - set iterations to 50
 iterations                   = 50
 
 # Resulting data frames
@@ -97,7 +97,6 @@ ggplot(finalResults, aes(x=METHOD, y=AUC.TEST, fill=METHOD)) +
   theme_bw()
 
 
-## We don't need the below, but keeping in just in case I misread project details
 ## Calculating TPR and FPR for one run and generating ROC plot
 vec.theta             <- seq(0,1,by=0.01)
 vec.theta.len         <- length(vec.theta)
