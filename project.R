@@ -1,5 +1,6 @@
 library(glmnet)
 library(ROCR)
+library(randomForest)
 df = read.csv('C:/Users/Vladimir/OneDrive/Documents/Baruch/Fall 2021/STAT 9891 - Machine Learning for Data Mining/Final_Project/santander.csv')
 
 # Remove ID_Code Column
@@ -46,6 +47,14 @@ for (run in seq(iterations)) {
   y.train       = y[sample.idx]
   y.test        = y[-sample.idx]
   
+  weight_n = dim(X.train)[1]
+  p = dim(X.train)[2]
+  n.P                 =        sum(y.train)
+  n.N                 =        weight_n - n.P
+  ww                  =        rep(1,weight_n)
+  ww[y.train==1]      =        n.N/n.P
+  
+  # Logistic Regression
   for (a in alphas){
     logisticType = ""
     if (a==1)  { logisticType = "LASSO"}
@@ -83,19 +92,50 @@ for (run in seq(iterations)) {
     # Screen progress output
     print(sprintf("Run %i: %s Fitting Runtime: %3.4f seconds, Train AUC: %.4f Test AUC: %.4f", run, logisticType, time, auc.train, auc.test))
   }
+  
+  # Random forest
+  dat.train     = data.frame(X.train, y.train=as.factor(y.train))
+  dat.test      = data.frame(X.test, y.test=as.factor(y.test))
+  start         = Sys.time()
+  rf.fit        = randomForest(y.train~., data = dat.train, mtry = sqrt(p), do.trace=TRUE, ntree=50, classwt=rev(unique(ww)), importance=TRUE)
+  end           = Sys.time()
+  time          = end - start
+  
+  prob.train = predict(rf.fit, dat.train, type="prob")
+  prob.test  = predict(rf.fit, dat.test, type="prob")
+  
+  # Calculate train AUC and test AUC
+  pred.train             <- prediction(as.vector(prob.train[,2]), y.train)
+  auc.ROCR.train         <- performance(pred.train, measure="auc")
+  auc.train              <- auc.ROCR.train@y.values[[1]]
+  #perf_ROC=performance(pred.train,"tpr","fpr")
+  #plot(perf_ROC, main="ROC Plot")
+  
+  pred.test              <- prediction(as.vector(prob.test[,2]), y.test)
+  auc.ROCR.test          <- performance(pred.test, measure="auc")
+  auc.test               <- auc.ROCR.test@y.values[[1]]
+  #perf_ROC=performance(pred.test,"tpr","fpr")
+  #plot(perf_ROC, main="ROC Plot")
+  randf.results[run,2:4] <- c(auc.train, auc.test, time)
+  print(sprintf("Run %i: %s Fitting Runtime: %3.4f seconds, Train AUC: %.4f Test AUC: %.4f", run, "RANDF", time, auc.train, auc.test))
+  
+  rfImportance <- importance(rf.fit)
+  varImpPlot(rf.fit)
+  
   # Iteration completed, printing total time for run
   runEnd        = Sys.time()
   runTime       = runEnd - runStart
   print(sprintf("Run %i took %3.4f seconds", run, runTime))
 }
 
+## Final dataframe
 finalResults = rbind(lasso.results,elast.results,ridge.results, randf.results)
 
+# AUC.TEST boxplots
 ggplot(finalResults, aes(x=METHOD, y=AUC.TEST, fill=METHOD)) +
   geom_boxplot() +
   guides(fill="none") +
   theme_bw()
-
 
 ## Calculating TPR and FPR for one run and generating ROC plot
 vec.theta             <- seq(0,1,by=0.01)
@@ -125,4 +165,3 @@ for (i in 1:vec.theta.len){
   TPR.test                     = TP.test / P.test
   mat.tpr.fpr.test[i,c(2,3)]   = c(TPR.test, FPR.test)
 }
-
