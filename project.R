@@ -108,19 +108,14 @@ for (run in seq(iterations)) {
   pred.train             <- prediction(as.vector(prob.train[,2]), y.train)
   auc.ROCR.train         <- performance(pred.train, measure="auc")
   auc.train              <- auc.ROCR.train@y.values[[1]]
-  #perf_ROC=performance(pred.train,"tpr","fpr")
-  #plot(perf_ROC, main="ROC Plot")
   
   pred.test              <- prediction(as.vector(prob.test[,2]), y.test)
   auc.ROCR.test          <- performance(pred.test, measure="auc")
   auc.test               <- auc.ROCR.test@y.values[[1]]
-  #perf_ROC=performance(pred.test,"tpr","fpr")
-  #plot(perf_ROC, main="ROC Plot")
+  
+  # Populate results
   randf.results[run,2:4] <- c(auc.train, auc.test, time)
   print(sprintf("Run %i: %s Fitting Runtime: %3.4f seconds, Train AUC: %.4f Test AUC: %.4f", run, "RANDF", time, auc.train, auc.test))
-  
-  rfImportance <- importance(rf.fit)
-  varImpPlot(rf.fit)
   
   # Iteration completed, printing total time for run
   runEnd        = Sys.time()
@@ -131,11 +126,20 @@ for (run in seq(iterations)) {
 ## Final dataframe
 finalResults = rbind(lasso.results,elast.results,ridge.results, randf.results)
 
-# AUC.TEST boxplots
-ggplot(finalResults, aes(x=METHOD, y=AUC.TEST, fill=METHOD)) +
+## Boxplot
+bp           <- finalResults %>% 
+                  gather(AUC.TYPE, AUC, c(AUC.TRAIN,AUC.TEST))
+bp$METHOD    <- factor(bp$METHOD, levels=c("LASSO","ELAST","RIDGE","RANDF"))
+bp$AUC.TYPE  <- factor(bp$AUC.TYPE, levels=c("AUC.TRAIN","AUC.TEST"))
+
+ggplot(bp, aes(x=AUC.TYPE, y=AUC, fill=METHOD)) +
   geom_boxplot() +
-  guides(fill="none") +
+  guides() +
   theme_bw()
+
+# Showing importance of RF predictors based on GINI and Accuracy
+rfImportance <- importance(rf.fit)
+varImpPlot(rf.fit)
 
 ## Calculating TPR and FPR for one run and generating ROC plot
 vec.theta             <- seq(0,1,by=0.01)
