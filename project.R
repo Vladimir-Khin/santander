@@ -1,7 +1,7 @@
 library(glmnet)
 library(ROCR)
 library(randomForest)
-df = read.csv('C:/Users/Vladimir/OneDrive/Documents/Baruch/Fall 2021/STAT 9891 - Machine Learning for Data Mining/Final_Project/santander.csv')
+df = read.csv('data/santander.csv')
 
 # Remove ID_Code Column
 df = df[-1]
@@ -31,6 +31,16 @@ colnames(lasso.results)      = column.Names
 colnames(elast.results)      = column.Names
 colnames(ridge.results)      = column.Names
 colnames(randf.results)      = column.Names
+
+# For coeffient plots
+lasso.coeff.mat = data.frame(matrix(ncol=length(colnames(X.train)), nrow=1))
+elasticnet.coeff.mat = data.frame(matrix(ncol=length(colnames(X.train)), nrow=1))
+ridge.coeff.mat = data.frame(matrix(ncol=length(colnames(X.train)), nrow=1))
+rf.coeff.mat = data.frame(matrix(ncol=length(colnames(X.train)), nrow=1))
+colnames(lasso.coeff.mat) = c(colnames(X.train))
+colnames(elasticnet.coeff.mat) = c(colnames(X.train))
+colnames(ridge.coeff.mat) = c(colnames(X.train))
+colnames(rf.coeff.mat) = c(colnames(X.train))
 
 # Settings for cv.fit plots
 par(mfrow=c(3,1))
@@ -63,8 +73,8 @@ for (run in seq(iterations)) {
   
     # Fitting model - To do - Try adding in weights
     start         = Sys.time()
-    cv.fit        = cv.glmnet(X.train, y.train, family="binomial", alpha=a, type.measure="class", nfolds=10, intercept=TRUE)
-    fit           = glmnet(X.train, y.train, family="binomial", alpha=a, lambda=cv.fit$lambda.min, intercept=TRUE)
+    cv.fit        = cv.glmnet(X.train, y.train, family="binomial", alpha=a, type.measure="class", nfolds=10, weights = ww, intercept=TRUE)
+    fit           = glmnet(X.train, y.train, family="binomial", alpha=a, lambda=cv.fit$lambda.min, wegihts=ww, intercept=TRUE)
     end           = Sys.time()
     time          = end - start
     
@@ -85,6 +95,10 @@ for (run in seq(iterations)) {
     if (logisticType == "LASSO")      {lasso.results[run,2:4]       <- c(auc.train, auc.test, time)}
     if (logisticType == "ELAST")      {elast.results[run,2:4]       <- c(auc.train, auc.test, time)}
     if (logisticType == "RIDGE")      {ridge.results[run,2:4]       <- c(auc.train, auc.test, time)}
+
+    if (run == iterations && logisticType == "LASSO")      {lasso.coeff.mat[1,]       <- t(beta.hat)}
+    if (run == iterations && logisticType == "ELAST")      {elasticnet.coeff.mat[1,]  <- t(beta.hat)}
+    if (run == iterations && logisticType == "RIDGE")      {ridge.coeff.mat[1,]       <- t(beta.hat)}
 
     # Print cv.fit plot for logistic method on last iteration
     if (run == iterations) {plot(cv.fit)}
@@ -126,7 +140,7 @@ for (run in seq(iterations)) {
 ## Final dataframe
 finalResults = rbind(lasso.results,elast.results,ridge.results, randf.results)
 
-## Boxplot
+## AUC Train/Test Boxplot per algorithm
 bp           <- finalResults %>% 
                   gather(AUC.TYPE, AUC, c(AUC.TRAIN,AUC.TEST))
 bp$METHOD    <- factor(bp$METHOD, levels=c("LASSO","ELAST","RIDGE","RANDF"))
@@ -169,3 +183,20 @@ for (i in 1:vec.theta.len){
   TPR.test                     = TP.test / P.test
   mat.tpr.fpr.test[i,c(2,3)]   = c(TPR.test, FPR.test)
 }
+
+## Coeffient plot
+lasso.coeff.mat = lasso.coeff.mat[, order(elasticnet.coeff.mat, decreasing = TRUE)]
+elasticnet.coeff.mat = elasticnet.coeff.mat[, order(elasticnet.coeff.mat, decreasing = TRUE)]
+ridge.coeff.mat = ridge.coeff.mat[, order(elasticnet.coeff.mat, decreasing = TRUE)]
+rf.coeff.mat = rf.coeff.mat[, order(elasticnet.coeff.mat, decreasing = TRUE)]
+all.coeff.mat = rbind(lasso.coeff.mat, elasticnet.coeff.mat, ridge.coeff.mat, rf.coeff.mat)
+all.coeff.mat = cbind(seq(1:200), t(all.coeff.mat))
+colnames(all.coeff.mat) = c('Elastic Net Ordered Index', 'Lasso', 'Elastic_Net', 'Ridge', 'Random_Forest')
+all.coeff.mat = as.data.frame(all.coeff.mat)
+
+par(mfrow=c(4,1))
+par(mar = c(2, 4, 2, 2))
+barplot(all.coeff.mat$Elastic_Net, horiz=FALSE, main = 'Elastic Net', ylab = 'Coefficient Value', col = 'blue')
+barplot(all.coeff.mat$Lasso, horiz=FALSE, main = 'Lasso', ylab = 'Coefficient Value', col = 'gray')
+barplot(all.coeff.mat$Ridge, horiz=FALSE, main = 'Ridge', ylab = 'Coefficient Value', col = 'red')
+barplot(all.coeff.mat$Random_Forest, horiz=FALSE, main = 'Random Forest', ylab = 'MeanDecreaseGini', col = 'white')
