@@ -20,4 +20,4 @@ The following methods were applied for analyzing the dataset:
 * Random Forest
 
 #### Results
-<ToDo>
+Check out powerpoint presentation.
