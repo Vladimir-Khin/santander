@@ -10,7 +10,7 @@ df = df[-1]
 set.seed(75)
 data = df[sample(nrow(df), 4000),]
 # Reset indexes of df
-row.names(data) <- NULL
+row.names(data) = NULL
 
 n = dim(data)[1]
 p = dim(data)[2] - 1
@@ -33,14 +33,14 @@ colnames(ridge.results)      = column.Names
 colnames(randf.results)      = column.Names
 
 # For coeffient plots
-lasso.coeff.mat = data.frame(matrix(ncol=length(colnames(X.train)), nrow=1))
-elasticnet.coeff.mat = data.frame(matrix(ncol=length(colnames(X.train)), nrow=1))
-ridge.coeff.mat = data.frame(matrix(ncol=length(colnames(X.train)), nrow=1))
-rf.coeff.mat = data.frame(matrix(ncol=length(colnames(X.train)), nrow=1))
-colnames(lasso.coeff.mat) = c(colnames(X.train))
+lasso.coeff.mat                = data.frame(matrix(ncol=length(colnames(X.train)), nrow=1))
+elasticnet.coeff.mat           = data.frame(matrix(ncol=length(colnames(X.train)), nrow=1))
+ridge.coeff.mat                = data.frame(matrix(ncol=length(colnames(X.train)), nrow=1))
+rf.coeff.mat                   = data.frame(matrix(ncol=length(colnames(X.train)), nrow=1))
+colnames(lasso.coeff.mat)      = c(colnames(X.train))
 colnames(elasticnet.coeff.mat) = c(colnames(X.train))
-colnames(ridge.coeff.mat) = c(colnames(X.train))
-colnames(rf.coeff.mat) = c(colnames(X.train))
+colnames(ridge.coeff.mat)      = c(colnames(X.train))
+colnames(rf.coeff.mat)         = c(colnames(X.train))
 
 # Settings for cv.fit plots
 par(mfrow=c(3,1))
@@ -51,18 +51,18 @@ alphas = c(1, 0.5, 0)
 for (run in seq(iterations)) {
   runStart      = Sys.time()
   # Take 90/10 split
-  sample.idx    = sample(nrow(data), size = n * 0.9)
-  X.train       = X[sample.idx,]
-  X.test        = X[-sample.idx,]
-  y.train       = y[sample.idx]
-  y.test        = y[-sample.idx]
+  sample.idx      = sample(nrow(data), size = n * 0.9)
+  X.train         = X[sample.idx,]
+  X.test          = X[-sample.idx,]
+  y.train         = y[sample.idx]
+  y.test          = y[-sample.idx]
   
-  weight_n = dim(X.train)[1]
-  p = dim(X.train)[2]
-  n.P                 =        sum(y.train)
-  n.N                 =        weight_n - n.P
-  ww                  =        rep(1,weight_n)
-  ww[y.train==1]      =        n.N/n.P
+  weight_n        = dim(X.train)[1]
+  p               = dim(X.train)[2]
+  n.P             = sum(y.train)
+  n.N             = weight_n - n.P
+  ww              = rep(1,weight_n)
+  ww[y.train==1]  = n.N/n.P
   
   # Logistic Regression
   for (a in alphas){
@@ -84,21 +84,21 @@ for (run in seq(iterations)) {
     prob.test     = predict(fit, newx = X.test, type="response")
     
     # Calculate train AUC and test AUC
-    pred.train           <- prediction(c(prob.train), y.train)
-    auc.ROCR.train       <- performance(pred.train, measure="auc")
-    auc.train            <- auc.ROCR.train@y.values[[1]]
-    pred.test            <- prediction(c(prob.test), y.test)
-    auc.ROCR.test        <- performance(pred.test, measure="auc")
-    auc.test             <- auc.ROCR.test@y.values[[1]]
+    pred.train           = prediction(c(prob.train), y.train)
+    auc.ROCR.train       = performance(pred.train, measure="auc")
+    auc.train            = auc.ROCR.train@y.values[[1]]
+    pred.test            = prediction(c(prob.test), y.test)
+    auc.ROCR.test        = performance(pred.test, measure="auc")
+    auc.test             = auc.ROCR.test@y.values[[1]]
     
     # Populate results data frame
-    if (logisticType == "LASSO")      {lasso.results[run,2:4]       <- c(auc.train, auc.test, time)}
-    if (logisticType == "ELAST")      {elast.results[run,2:4]       <- c(auc.train, auc.test, time)}
-    if (logisticType == "RIDGE")      {ridge.results[run,2:4]       <- c(auc.train, auc.test, time)}
+    if (logisticType == "LASSO")      {lasso.results[run,2:4]       = c(auc.train, auc.test, time)}
+    if (logisticType == "ELAST")      {elast.results[run,2:4]       = c(auc.train, auc.test, time)}
+    if (logisticType == "RIDGE")      {ridge.results[run,2:4]       = c(auc.train, auc.test, time)}
 
-    if (run == iterations && logisticType == "LASSO")      {lasso.coeff.mat[1,]       <- t(beta.hat)}
-    if (run == iterations && logisticType == "ELAST")      {elasticnet.coeff.mat[1,]  <- t(beta.hat)}
-    if (run == iterations && logisticType == "RIDGE")      {ridge.coeff.mat[1,]       <- t(beta.hat)}
+    if (run == iterations && logisticType == "LASSO")      {lasso.coeff.mat[1,]       = t(beta.hat)}
+    if (run == iterations && logisticType == "ELAST")      {elasticnet.coeff.mat[1,]  = t(beta.hat)}
+    if (run == iterations && logisticType == "RIDGE")      {ridge.coeff.mat[1,]       = t(beta.hat)}
 
     # Print cv.fit plot for logistic method on last iteration
     if (run == iterations) {plot(cv.fit)}
@@ -119,16 +119,16 @@ for (run in seq(iterations)) {
   prob.test  = predict(rf.fit, dat.test, type="prob")
   
   # Calculate train AUC and test AUC
-  pred.train             <- prediction(as.vector(prob.train[,2]), y.train)
-  auc.ROCR.train         <- performance(pred.train, measure="auc")
-  auc.train              <- auc.ROCR.train@y.values[[1]]
+  pred.train             = prediction(as.vector(prob.train[,2]), y.train)
+  auc.ROCR.train         = performance(pred.train, measure="auc")
+  auc.train              = auc.ROCR.train@y.values[[1]]
   
-  pred.test              <- prediction(as.vector(prob.test[,2]), y.test)
-  auc.ROCR.test          <- performance(pred.test, measure="auc")
-  auc.test               <- auc.ROCR.test@y.values[[1]]
+  pred.test              = prediction(as.vector(prob.test[,2]), y.test)
+  auc.ROCR.test          = performance(pred.test, measure="auc")
+  auc.test               = auc.ROCR.test@y.values[[1]]
   
   # Populate results
-  randf.results[run,2:4] <- c(auc.train, auc.test, time)
+  randf.results[run,2:4] = c(auc.train, auc.test, time)
   print(sprintf("Run %i: %s Fitting Runtime: %3.4f seconds, Train AUC: %.4f Test AUC: %.4f", run, "RANDF", time, auc.train, auc.test))
   
   # Iteration completed, printing total time for run
@@ -141,10 +141,10 @@ for (run in seq(iterations)) {
 finalResults = rbind(lasso.results,elast.results,ridge.results, randf.results)
 
 ## AUC Train/Test Boxplot per algorithm
-bp           <- finalResults %>% 
+bp           = finalResults %>% 
                   gather(AUC.TYPE, AUC, c(AUC.TRAIN,AUC.TEST))
-bp$METHOD    <- factor(bp$METHOD, levels=c("LASSO","ELAST","RIDGE","RANDF"))
-bp$AUC.TYPE  <- factor(bp$AUC.TYPE, levels=c("AUC.TRAIN","AUC.TEST"))
+bp$METHOD    = factor(bp$METHOD, levels=c("LASSO","ELAST","RIDGE","RANDF"))
+bp$AUC.TYPE  = factor(bp$AUC.TYPE, levels=c("AUC.TRAIN","AUC.TEST"))
 
 ggplot(bp, aes(x=AUC.TYPE, y=AUC, fill=METHOD)) +
   geom_boxplot() +
@@ -152,16 +152,16 @@ ggplot(bp, aes(x=AUC.TYPE, y=AUC, fill=METHOD)) +
   theme_bw()
 
 # Showing importance of RF predictors based on GINI and Accuracy
-rfImportance <- importance(rf.fit)
+rfImportance = importance(rf.fit)
 varImpPlot(rf.fit)
 
 ## Calculating TPR and FPR for one run and generating ROC plot
-vec.theta             <- seq(0,1,by=0.01)
-vec.theta.len         <- length(vec.theta)
-mat.tpr.fpr.train     <- matrix(0, nrow=vec.theta.len, ncol=3)
-mat.tpr.fpr.train[,1] <- vec.theta
-mat.tpr.fpr.test      <- matrix(0, nrow=vec.theta.len, ncol=3)
-mat.tpr.fpr.test[,1]  <- vec.theta
+vec.theta             = seq(0,1,by=0.01)
+vec.theta.len         = length(vec.theta)
+mat.tpr.fpr.train     = matrix(0, nrow=vec.theta.len, ncol=3)
+mat.tpr.fpr.train[,1] = vec.theta
+mat.tpr.fpr.test      = matrix(0, nrow=vec.theta.len, ncol=3)
+mat.tpr.fpr.test[,1]  = vec.theta
 for (i in 1:vec.theta.len){
   # Train dataset
   y.hat.train                  = ifelse(prob.train > vec.theta[i], 1, 0)
@@ -184,15 +184,15 @@ for (i in 1:vec.theta.len){
   mat.tpr.fpr.test[i,c(2,3)]   = c(TPR.test, FPR.test)
 }
 
-## Coeffient plot
-lasso.coeff.mat = lasso.coeff.mat[, order(elasticnet.coeff.mat, decreasing = TRUE)]
-elasticnet.coeff.mat = elasticnet.coeff.mat[, order(elasticnet.coeff.mat, decreasing = TRUE)]
-ridge.coeff.mat = ridge.coeff.mat[, order(elasticnet.coeff.mat, decreasing = TRUE)]
-rf.coeff.mat = rf.coeff.mat[, order(elasticnet.coeff.mat, decreasing = TRUE)]
-all.coeff.mat = rbind(lasso.coeff.mat, elasticnet.coeff.mat, ridge.coeff.mat, rf.coeff.mat)
-all.coeff.mat = cbind(seq(1:200), t(all.coeff.mat))
+## Coeffcient plot
+lasso.coeff.mat         = lasso.coeff.mat[, order(elasticnet.coeff.mat, decreasing = TRUE)]
+elasticnet.coeff.mat    = elasticnet.coeff.mat[, order(elasticnet.coeff.mat, decreasing = TRUE)]
+ridge.coeff.mat         = ridge.coeff.mat[, order(elasticnet.coeff.mat, decreasing = TRUE)]
+rf.coeff.mat            = rf.coeff.mat[, order(elasticnet.coeff.mat, decreasing = TRUE)]
+all.coeff.mat           = rbind(lasso.coeff.mat, elasticnet.coeff.mat, ridge.coeff.mat, rf.coeff.mat)
+all.coeff.mat           = cbind(seq(1:200), t(all.coeff.mat))
 colnames(all.coeff.mat) = c('Elastic Net Ordered Index', 'Lasso', 'Elastic_Net', 'Ridge', 'Random_Forest')
-all.coeff.mat = as.data.frame(all.coeff.mat)
+all.coeff.mat           = as.data.frame(all.coeff.mat)
 
 par(mfrow=c(4,1))
 par(mar = c(2, 4, 2, 2))
