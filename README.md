@@ -1,11 +1,11 @@
 # Santander
 Predicting Santander customer purchasing behavior
 
-For this project we'll be analzying the following kaggle dataset:  
+For this project we'll be analyzing the following kaggle dataset:  
 https://www.kaggle.com/c/santander-customer-transaction-prediction/overview
 
 #### Overview
-The Santander data set contains 200 anonymized columns of customer profiles and historical behavior, all of which are used to predict a whether the customer will make a specific purchase in the future.
+The Santander data set contains 200 anonymized columns of customer profiles and historical behavior, all of which are used to predict whether the customer will make a specific purchase in the future.
 
 #### Data
 Summary of the dataset: 
